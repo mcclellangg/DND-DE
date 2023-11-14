@@ -6,7 +6,7 @@ This function will read the data from the 5e-SRD-Monsters.json and write it into
 import openpyxl
 import json
 import logging
-5
+
 # Configure logger
 # TODO: Save/create log file function
 logging.basicConfig(filename='.\\logs\\app.log', level=logging.DEBUG)
@@ -89,5 +89,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("monsters.xlsx")
+workbook.save("./output/monsters.xlsx")
 workbook.close()
