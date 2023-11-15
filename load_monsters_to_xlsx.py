@@ -12,7 +12,24 @@ import logging
 logging.basicConfig(filename='.\\logs\\app.log', level=logging.DEBUG)
 
 # === Constants & variables
-HEADERS = ["index", "name", "size", "challenge_rating", "hit_points", "speed", "armor_class"]
+HEADERS = ["index"
+           ,"name"
+           ,"type"
+           ,"alignment"
+           ,"armor_class"
+           ,"hit_points"
+           ,"hit_points_roll"
+            ,"speed"
+           ,"strength"
+           ,"dexterity"
+           ,"constitution"
+           ,"intelligence"
+           ,"wisdom"
+           ,"charisma"
+           ,"size"
+           ,"languages"
+           ,"challenge_rating"
+           ,"xp"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
