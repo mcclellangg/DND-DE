@@ -14,15 +14,6 @@ logging.basicConfig(filename='.\\logs\\app.log', level=logging.DEBUG)
 # === Constants & variables
 HEADERS = ["index", "name", "size", "challenge_rating", "hit_points", "speed", "armor_class"]
 
-walk_speed_exceptions = ["air-elemental", "giant-shark", "hunter-shark", "killer-whale", "quipper", "reef-shark", "sea-horse", "vampire-mist"]
-
-# ==== TODO ===
-# exception_fields = {
-    # "speed" : "TODO" #Add keys for swim
-    # ,"armor_clss" : "TODO"
-# }
-# === TODO ===
-
 # === Functions
 def validate_row_length(row, HEADERS):
     """This function validates that the row_to_write will have the same number of columns as the HEADERS"""
@@ -32,6 +23,8 @@ def validate_row_length(row, HEADERS):
         return False
     else:
         return True
+
+# === EXECUTE ===
 
 # Create new workbook
 workbook = openpyxl.Workbook()
@@ -51,15 +44,18 @@ with open(input_json_file, "r") as json_file:
 
 # Write json data to output
 for item in data:
-    #BUG: ensure when writing row, that len == HEADERS
     row_to_write = []
 
     # Populate row_to_write
     for column in HEADERS:
         if column == "speed":
-            if item["index"] not in walk_speed_exceptions:
-                row_to_write.append(item[column]["walk"])
-            else:
+            try:
+                speed_dict = item["speed"]
+                if "hover" in speed_dict:
+                    speed_dict["hover"] = "true"
+                parsed_speed = ','.join(key + " " + val for key, val in speed_dict.items())
+                row_to_write.append(parsed_speed)
+            except Exception as e:
                 row_to_write.append("NULL")
                 logging.info(f"Monster speed is an exception and will be written as NULL")
                 logging.info(f"Index of monster with exception: {item['index']}")
