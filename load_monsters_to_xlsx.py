@@ -12,6 +12,7 @@ import logging
 logging.basicConfig(filename='.\\logs\\app.log', level=logging.DEBUG)
 
 # === Constants & variables
+# BUG:HEADERS assumes input column maps exactly to output column (Cases exist where this is not true, and will need to be solved for) 
 HEADERS = ["index"
            ,"name"
            ,"type"
@@ -19,7 +20,7 @@ HEADERS = ["index"
            ,"armor_class"
            ,"hit_points"
            ,"hit_points_roll"
-            ,"speed"
+           ,"speed"
            ,"strength"
            ,"dexterity"
            ,"constitution"
@@ -29,7 +30,9 @@ HEADERS = ["index"
            ,"size"
            ,"languages"
            ,"challenge_rating"
-           ,"xp"]
+           ,"xp"
+           ,"save_throws"
+           ,"skills"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -40,6 +43,26 @@ def validate_row_length(row, HEADERS):
         return False
     else:
         return True
+
+def create_saves_dict(profs:list) -> dict:
+    """Takes a list of proficiencies, searches for save_throws and returns a dict of saving throw names & values"""
+    # item["proficiencies"]
+    save_throws_d = {}
+    for d in profs:
+        curr_name = d["proficiency"]["name"]
+        curr_value = d["value"]
+        if "Saving Throw" in curr_name:
+            save_throws_d[curr_name] = curr_value
+    return save_throws_d
+
+def create_skills_dict(profs:list) -> dict:
+    skills_d = {}
+    for d in profs:
+        curr_name = d["proficiency"]["name"]
+        curr_value = d["value"]
+        if "Skill" in curr_name:
+            skills_d[curr_name] = curr_value
+    return skills_d
 
 # === EXECUTE ===
 
@@ -84,7 +107,27 @@ for item in data:
             except Exception as e:
                 logging.info(f"Monster armor_class is an exception and will not be written to output xlsx")
                 logging.info(f"Index of monster with exception: {item['index']}")
-
+        
+        elif column == "save_throws":
+            save_throws_d = create_saves_dict(item["proficiencies"])
+            if len(save_throws_d) > 0:
+                parsed_saves = ','.join(key + " : " + str(val) for key, val in save_throws_d.items())
+                row_to_write.append(parsed_saves)
+            else:
+                row_to_write.append("NULL")
+                logging.info(f"Monster has no save_throw proficiencies")
+                logging.info(f"Index of monster with save_throw exception: {item['index']}")
+        
+        elif column == "skills":
+            skills_d = create_skills_dict(item["proficiencies"])
+            if len(skills_d) > 0:
+                parsed_saves = ','.join(key + " : " + str(val) for key, val in skills_d.items())
+                row_to_write.append(parsed_saves)
+            else:
+                row_to_write.append("NULL")
+                logging.info(f"Monster has no skill proficiencies")
+                logging.info(f"Index of monster with skill proficiency exception: {item['index']}")
+                
         else:
             try:
                 row_to_write.append(item[column])
@@ -102,5 +145,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/monsters.xlsx")
+workbook.save("./output/skills_test.xlsx")
 workbook.close()
