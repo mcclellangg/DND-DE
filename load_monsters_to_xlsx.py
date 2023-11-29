@@ -36,7 +36,8 @@ HEADERS = ["index"
            ,"damage_resistances"
            ,"damage_immunities"
            ,"condition_immunities"
-           ,"senses"]
+           ,"senses"
+           ,"special_abilities"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -159,7 +160,20 @@ for item in data:
             senses_dict = item["senses"]
             parsed_senses = ','.join(key + " : " + str(val) for key, val in senses_dict.items())
             row_to_write.append(parsed_senses)
-                
+        
+        elif column == "special_abilities":
+            # item["special_abilities"] returns list of dicts
+            try:
+                item["special_abilities"]
+                abilities_list = [d["name"] + ". " + d["desc"] for d in item["special_abilities"]]
+                # ASSUMPTION: list is never null/empty
+                abilities_string = " ".join(abilities_list)
+                row_to_write.append(abilities_string)
+            except Exception as e:
+                # HACK: grab KeyError specifically not just general exceptions
+                logging.warning(f"Likely a key error occured for {item['index']} due to special_abilities")
+                row_to_write.append("NULL")
+
         else:
             try:
                 row_to_write.append(item[column])
@@ -177,5 +191,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/senses_test.xlsx")
+workbook.save("./output/special_abl_test.xlsx")
 workbook.close()
