@@ -33,7 +33,9 @@ HEADERS = ["index"
            ,"xp"
            ,"save_throws"
            ,"skills"
-           ,"damage_resistances"]
+           ,"damage_resistances"
+           ,"damage_immunities"
+           ,"condition_immunities"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -129,17 +131,27 @@ for item in data:
                 logging.info(f"Monster has no skill proficiencies")
                 logging.info(f"Index of monster with skill proficiency exception: {item['index']}")
         
-        elif column == "damage_resistances":
+        elif column == "damage_resistances" or column == "damage_immunities":
             # Concat into single string
-            dmg_res_l = item["damage_resistances"]
-            if len(dmg_res_l) > 0:
-                dmg_res_str = ""
-                for s in dmg_res_l:
-                    dmg_res_str += s
-                row_to_write.append(dmg_res_str)
+            dmg_item_l = item[column]
+            if len(dmg_item_l) > 0:
+                dmg_item_s = ""
+                for s in dmg_item_l:
+                    dmg_item_s += s + ', ' # HACK
+                row_to_write.append(dmg_item_s)
             else:
                 row_to_write.append("NULL")
-                logging.info(f"Index: {item['index']} has no damage resistances")
+                logging.info(f"Index: {item['index']} has no {column} values")
+        
+        elif column == "condition_immunities":
+            immunities_d = item["condition_immunities"]
+            # Retrieve only names
+            if immunities_d:
+                condition_names = [d["name"] for d in immunities_d]
+                row_to_write.append(str(condition_names)) # HACK
+            else:
+                row_to_write.append("NULL")
+                logging.info(f"Index: {item['index']} has no {column} values")
                 
         else:
             try:
@@ -158,5 +170,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/dr_test.xlsx")
+workbook.save("./output/cond_immun_test.xlsx")
 workbook.close()
