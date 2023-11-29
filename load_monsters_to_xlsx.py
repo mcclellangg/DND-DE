@@ -32,7 +32,8 @@ HEADERS = ["index"
            ,"challenge_rating"
            ,"xp"
            ,"save_throws"
-           ,"skills"]
+           ,"skills"
+           ,"damage_resistances"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -127,6 +128,18 @@ for item in data:
                 row_to_write.append("NULL")
                 logging.info(f"Monster has no skill proficiencies")
                 logging.info(f"Index of monster with skill proficiency exception: {item['index']}")
+        
+        elif column == "damage_resistances":
+            # Concat into single string
+            dmg_res_l = item["damage_resistances"]
+            if len(dmg_res_l) > 0:
+                dmg_res_str = ""
+                for s in dmg_res_l:
+                    dmg_res_str += s
+                row_to_write.append(dmg_res_str)
+            else:
+                row_to_write.append("NULL")
+                logging.info(f"Index: {item['index']} has no damage resistances")
                 
         else:
             try:
@@ -145,5 +158,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/skills_test.xlsx")
+workbook.save("./output/dr_test.xlsx")
 workbook.close()
