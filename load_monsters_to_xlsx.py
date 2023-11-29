@@ -17,7 +17,8 @@ HEADERS = ["index"
            ,"name"
            ,"type"
            ,"alignment"
-           ,"armor_class"
+           ,"AC" # conforms to fight_sheet
+           ,"AC_type" # conforms to fight_sheet
            ,"hit_points"
            ,"hit_points_roll"
            ,"speed"
@@ -107,13 +108,20 @@ for item in data:
                 logging.info(f"Monster speed is an exception and will be written as NULL")
                 logging.info(f"Index of monster with exception: {item['index']}")
         
-        elif column == "armor_class":
+        elif column == "AC":
             try:
-                row_to_write.append(item[column][0]["value"])
+                row_to_write.append(item["armor_class"][0]["value"])
             #BUG: does not catch exceptions
             except Exception as e:
-                logging.info(f"Monster armor_class is an exception and will not be written to output xlsx")
-                logging.info(f"Index of monster with exception: {item['index']}")
+                row_to_write.append("NULL")
+                logging.warning(f"Following exception occured with index {item['index']} due to AC value: {e}")
+        
+        elif column == "AC_type":
+            try:
+                row_to_write.append(item["armor_class"][0]["type"])
+            except Exception as e:
+                row_to_write.append("NULL")
+                logging.warning(f"Following exception occured with index {item['index']} due to AC_type: {e}")
         
         elif column == "save_throws":
             save_throws_d = create_saves_dict(item["proficiencies"])
@@ -213,5 +221,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/leg_actions_test.xlsx")
+workbook.save("./output/monsters.xlsx")
 workbook.close()
