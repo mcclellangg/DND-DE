@@ -35,7 +35,8 @@ HEADERS = ["index"
            ,"skills"
            ,"damage_resistances"
            ,"damage_immunities"
-           ,"condition_immunities"]
+           ,"condition_immunities"
+           ,"senses"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -147,11 +148,17 @@ for item in data:
             immunities_d = item["condition_immunities"]
             # Retrieve only names
             if immunities_d:
-                condition_names = [d["name"] for d in immunities_d]
+                condition_names = [d["name"] for d in immunities_d] # unclear variable
                 row_to_write.append(str(condition_names)) # HACK
             else:
                 row_to_write.append("NULL")
                 logging.info(f"Index: {item['index']} has no {column} values")
+        
+        elif column == "senses":
+            # item["senses"] returns a dict
+            senses_dict = item["senses"]
+            parsed_senses = ','.join(key + " : " + str(val) for key, val in senses_dict.items())
+            row_to_write.append(parsed_senses)
                 
         else:
             try:
@@ -170,5 +177,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/cond_immun_test.xlsx")
+workbook.save("./output/senses_test.xlsx")
 workbook.close()
