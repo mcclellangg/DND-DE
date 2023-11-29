@@ -37,7 +37,9 @@ HEADERS = ["index"
            ,"damage_immunities"
            ,"condition_immunities"
            ,"senses"
-           ,"special_abilities"]
+           ,"special_abilities"
+           ,"actions"
+           ,"legendary_actions"]
 
 # === Functions
 def validate_row_length(row, HEADERS):
@@ -173,6 +175,26 @@ for item in data:
                 # HACK: grab KeyError specifically not just general exceptions
                 logging.warning(f"Likely a key error occured for {item['index']} due to special_abilities")
                 row_to_write.append("NULL")
+        
+        elif column == "actions":
+            # item["actions"] returns list of dicts
+            try:
+                item["actions"]
+                actions_list = [d["name"] + ". " + d["desc"] for d in item["actions"]]
+                actions_string = " ".join(actions_list)
+                row_to_write.append(actions_string)
+            except Exception as e:
+                logging.warning(f"Following occured for {item['index']} due to actions: {e}")
+                row_to_write.append("NULL")
+        
+        elif column == "legendary_actions":
+            if "legendary_actions" in item:
+                leg_actions_list = [d["name"] + ". " + d["desc"] for d in item["legendary_actions"]]
+                leg_actions_string = " ".join(leg_actions_list)
+                row_to_write.append(leg_actions_string)
+            else:
+                logging.info(f"No legendary_actions for item_index: {item['index']}")
+                row_to_write.append("NULL")
 
         else:
             try:
@@ -191,5 +213,5 @@ for item in data:
         break
 
 # Save workbook to file and close
-workbook.save("./output/special_abl_test.xlsx")
+workbook.save("./output/leg_actions_test.xlsx")
 workbook.close()
