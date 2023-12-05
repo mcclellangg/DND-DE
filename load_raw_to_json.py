@@ -21,6 +21,7 @@ def get_named_values(item: dict, curr_monster: dict) -> dict:
     "index"
     ,"name"
     ,"type"
+    ,"speed"
     ,"alignment"
     ,"hit_points"
     ,"hit_points_roll"
@@ -31,6 +32,10 @@ def get_named_values(item: dict, curr_monster: dict) -> dict:
     ,"wisdom"
     ,"charisma"
     ,"size"
+    ,"damage_resistances"
+    ,"damage_immunities"
+    ,"damage_vulnerabilities"
+    ,"senses"
     ,"languages" # string of comma seperated values
     ,"challenge_rating"
     ,"xp"
@@ -69,9 +74,7 @@ def get_monster_ac(item: dict, curr_monster: dict) -> dict:
     if len(item["armor_class"]) > 1:
         # ERROR
         print(f"{item['index']} armor_class exceeds expected length")
-        print(f"Exiting program")
-        # TODO: return, break or exit
-        exit
+        # BUG: handle error for exceptions
     
     updated_ac_monster["armor_class"]["type"] = item["armor_class"][0]["type"]
     updated_ac_monster["armor_class"]["value"] = item["armor_class"][0]["value"]
@@ -82,14 +85,59 @@ def get_monster_ac(item: dict, curr_monster: dict) -> dict:
     
     return updated_ac_monster
 
+def get_proficiencies(item: dict) -> list:
+    """
+    item["proficiencies"] is a list of dictionaries containing saving throws, and/or skills. This function return a list of dicts in the following format:
+    { "value" : int
+      ,"proficiency_name" : str
+    }
+    """
+    proficiencies = []
+    for p in item["proficiencies"]:
+        d = {}
+        d["proficiency_name"] = p["proficiency"]["name"]
+        d["value"] = p["value"] # value is int
+        
+        # ASSUMPTION: proficiencies must be skill or saving_throw
+        if 'Skill' in p["proficiency"]["name"]:
+            d["type"] = "skill"
+        
+        elif "Saving Throw" in p["proficiency"]["name"]:
+            d["type"] = "saving_throw"
+        
+        else:
+            d["type"] = "NULL"
+
+        proficiencies.append(d)
+    
+    return proficiencies
+
+def get_actions_name_and_desc(item: dict, action_type="actions") -> list:
+    """
+    item["actions"] is a list of dicts. Parses each action for it's name and desc
+    action_type can be "legendary_actions" or "actions"
+    item must have "actions" field, but may not have "legendary_actions".
+    """
+    actions = []
+    for a in item[action_type]:
+        d = {}
+        d["name"] = a["name"]
+        d["desc"] = a["desc"]
+        actions.append(d)
+    
+    return actions
+
+
 # === Execute script
 input_path = "./data/5e-SRD-Monsters.json"
 output_path = "./data/raw_monsters.json"
 raw_monsters = []
 
+# Generate json data
 with open(input_path, "r") as input_json:
     data = json.load(input_json)
 
+# Iterate and extract
 for item in data:
     # Create monster and add to raw
     # curr_monster={} is redundant and unesscessary ...
@@ -99,16 +147,28 @@ for item in data:
     base_values = get_named_values(item=item, curr_monster={})
     raw_monster.update(base_values)
 
-    # Get speed
-    speed = get_item_speed(item=item, curr_monster={})
-    raw_monster.update(speed)
-
     # Get ac
     armor_class = get_monster_ac(item=item, curr_monster={})
     raw_monster.update(armor_class)
     
+    # Get proficiencies
+    proficiencies = get_proficiencies(item=item)
+    raw_monster["proficiencies"] = proficiencies
+
+    # Special_abilities (optional field)
+    if "special_abilities" in item:
+        raw_monster["special_abilities"] = item["special_abilities"]
+    
+    # Get actions
+    if "actions" in item:
+        actions = get_actions_name_and_desc(item=item)
+        raw_monster["actions"] = actions
+
+    if "legendary_actions" in item:
+        legendary_acts = get_actions_name_and_desc(item=item, action_type="legendary_actions")
+        raw_monster["legendary_actions"] = legendary_acts
+
     # TODO: perform some validation on it before considering updated
-    # BUG: currently load_raw process is only loading 333 monsters out of 335
     updated_raw_monster = raw_monster
     
     # Add final updated row
