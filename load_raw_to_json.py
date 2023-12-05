@@ -9,12 +9,12 @@ raw data layer
 import json
 
 # === Helpers
-def get_named_values(item: dict, curr_monster: dict) -> dict:
+def get_named_values(item: dict) -> dict:
     """
     Takes an item from json data, curr_monster (dict) and adds in all fields that can be keyed into
     without exceptions.
     """
-    updated_monster = curr_monster
+    base_values = {}
 
     # Try item[column] for value in named
     NAMED_VALUES = [
@@ -41,15 +41,15 @@ def get_named_values(item: dict, curr_monster: dict) -> dict:
     ,"xp"
     ]
     for key in NAMED_VALUES:
-        updated_monster[key] = item[key]
+        base_values[key] = item[key]
     
-    return updated_monster
+    return base_values
 
-def get_item_speed(item: dict, curr_monster: dict) -> dict:
+def get_item_speed(item: dict) -> dict:
     """
     Update monster dict w/ speed values
     """
-    updated_speed_monster = curr_monster
+    item_speed = {}
     
     try:
         speed_dict = item["speed"]
@@ -58,32 +58,32 @@ def get_item_speed(item: dict, curr_monster: dict) -> dict:
     except Exception as e:
        print(f"Error: {e}")
     
-    updated_speed_monster["speed"] = speed_dict
+    item_speed["speed"] = speed_dict
 
-    return updated_speed_monster
+    return item_speed
 
-def get_monster_ac(item: dict, curr_monster: dict) -> dict:
+def get_monster_ac(item: dict) -> dict:
     """
     Update monster armor class w/ value, type & armor name if dict contains armor
 
     ASSUMPTION: len (item["armor_class"]) not expected to exceed 1 or be 0
     """
-    updated_ac_monster = curr_monster
-    updated_ac_monster["armor_class"] = {}
+    monster_ac = {}
+    monster_ac["armor_class"] = {}
 
     if len(item["armor_class"]) > 1:
         # ERROR
         print(f"{item['index']} armor_class exceeds expected length")
         # BUG: handle error for exceptions
     
-    updated_ac_monster["armor_class"]["type"] = item["armor_class"][0]["type"]
-    updated_ac_monster["armor_class"]["value"] = item["armor_class"][0]["value"]
+    monster_ac["armor_class"]["type"] = item["armor_class"][0]["type"]
+    monster_ac["armor_class"]["value"] = item["armor_class"][0]["value"]
 
     # ASSUMPTION: item["armor_class"][0]["armor"] always == 1
     if "armor" in item["armor_class"][0]:
-        updated_ac_monster["armor_class"]["armor_name"] = item["armor_class"][0]["armor"][0]["name"]
+        monster_ac["armor_class"]["armor_name"] = item["armor_class"][0]["armor"][0]["name"]
     
-    return updated_ac_monster
+    return monster_ac
 
 def get_proficiencies(item: dict) -> list:
     """
@@ -140,15 +140,14 @@ with open(input_path, "r") as input_json:
 # Iterate and extract
 for item in data:
     # Create monster and add to raw
-    # curr_monster={} is redundant and unesscessary ...
     raw_monster = {}
     
     # Update with base values (items in srd where value can be accessed by key, and has no exceptions)
-    base_values = get_named_values(item=item, curr_monster={})
+    base_values = get_named_values(item=item)
     raw_monster.update(base_values)
 
     # Get ac
-    armor_class = get_monster_ac(item=item, curr_monster={})
+    armor_class = get_monster_ac(item=item)
     raw_monster.update(armor_class)
     
     # Get proficiencies
