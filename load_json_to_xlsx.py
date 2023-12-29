@@ -24,22 +24,41 @@ SCHEMA = {
     24: 'challenge_rating', 25: 'EXCEPTION', 26: 'EXCEPTION', 27: 'EXCEPTION'
 }
 
-EXCCEPTIONS = [4, 5, 8, 15, 16, 17, 18, 19, 20, 25, 26, 27] # Currently not used
-
-def create_header_map(headers:list) -> dict:
+def get_proficiencies_for_xlsx(prof_type:str, profs: list) -> str:
     """
-    Takes a list of already ordered header names for xlsx sheet and 
-    returns a dict with column number as key, and header as value.
+    Takes proficiences from json data (list of dictionaries) and returns a parsed string
+    to be written to xlsx column based on prof_type provided (saving_throw or skill)
     """
-    header_map = {}
+    prof_type_flags = {
+        "saving_throw": "Saving"
+        ,"skill" : "Skill"
+    }
 
-    for i, header in enumerate(headers):
-        key = i + 1
-        header_map[key] = f"{header}"
+    strip_values = {
+        "saving_throw": 14 # len("Saving Throw: ")
+        ,"skill" : 7 # len( "Skill: ")
+    }
 
-    return header_map
+    prof_flag = prof_type_flags[prof_type]
+    
+    # Create dict of values based on flag
+    profs_d = {}
+    for d in profs:
+        curr_name = d["proficiency_name"]
+        curr_value = d["value"]
+        # ASSUMPTION: "proficiency_name" always begins with "Saving Throw: " or "Skill: "
+        parsed_name = curr_name[strip_values[prof_type]:]
 
-HEADER_MAP = create_header_map(HEADERS)
+        if prof_flag in curr_name:
+            profs_d[parsed_name] = curr_value 
+    
+    # Parse dict
+    if len(profs_d) > 0:
+        parsed_profs = ', '.join(key + " +" + str(val) for key, val in profs_d.items())
+    else:
+        parsed_profs = f"No {prof_type} for this creatrue."
+    
+    return parsed_profs
 
 # === Main execution
 # load in json file
@@ -59,7 +78,42 @@ for json_item in data:
     for k in SCHEMA:
         if SCHEMA[k] != 'EXCEPTION':
             curr_monster[k] = json_item[SCHEMA[k]]
-    
+        # AC (value)
+        elif k == 4:
+            try:
+                curr_monster[k] = json_item["armor_class"]["value"]
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        # AC_type
+        elif k == 5:
+            try:
+                curr_monster[k] = json_item["armor_class"]["type"]
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        # Speed
+        elif k == 8:
+            try:
+                speed_dict = json_item["speed"]
+                if "hover" in speed_dict:
+                    speed_dict["hover"] = "true"
+                parsed_speed = ','.join(key + " " + val for key, val in speed_dict.items())
+                curr_monster[k] = (parsed_speed)
+            except Exception as e:
+                print(f"Monster speed is an exception and will be written as NULL")
+                print(f"Index of monster with exception: {json_item['index']}")
+        # Saving throws
+        elif k == 15:
+            try:
+                curr_monster[k] = get_proficiencies_for_xlsx(prof_type="saving_throw",profs=json_item["proficiencies"] )
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        # Skills
+        elif k == 16:
+            try:
+                curr_monster[k] = get_proficiencies_for_xlsx(prof_type="skill",profs=json_item["proficiencies"] )
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        
     monster_rows.append(curr_monster)
 
 # Create xlsx file
