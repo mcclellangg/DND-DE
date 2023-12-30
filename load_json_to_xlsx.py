@@ -21,7 +21,7 @@ SCHEMA = {
     13: 'wisdom', 14: 'charisma', 15: 'EXCEPTION', 16: 'EXCEPTION',
     17: 'EXCEPTION', 18: 'EXCEPTION', 19: 'EXCEPTION',
     20: 'EXCEPTION', 21: 'languages', 22: 'challenge_rating', 23: 'xp',
-    24: 'challenge_rating', 25: 'EXCEPTION', 26: 'EXCEPTION', 27: 'EXCEPTION'
+    24: 'EXCEPTION', 25: 'EXCEPTION', 26: 'EXCEPTION', 27: 'EXCEPTION'
 }
 
 def get_proficiencies_for_xlsx(prof_type:str, profs: list) -> str:
@@ -113,6 +113,61 @@ for json_item in data:
                 curr_monster[k] = get_proficiencies_for_xlsx(prof_type="skill",profs=json_item["proficiencies"] )
             except Exception as e:
                 print(f"An error has occurred: {e}")
+        # Damage immunities & resistances
+        elif k == 17:
+            try:
+                dmg_item_list = json_item["damage_resistances"]
+                if len(dmg_item_list) > 0:
+                    dmg_item_s = ""
+                    for s in dmg_item_list:
+                        dmg_item_s += s + ', ' # HACK
+                    curr_monster[k] = dmg_item_s[:-2] # trim trailing space and comma
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        elif k == 18:
+            try:
+                dmg_item_list = json_item["damage_immunities"]
+                if len(dmg_item_list) > 0:
+                    dmg_item_s = ""
+                    for s in dmg_item_list:
+                        dmg_item_s += s + ', ' # HACK
+                    curr_monster[k] = dmg_item_s[:-2] # trim trailing space and comma
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        # senses
+        elif k == 20:
+            senses_dict = json_item["senses"]
+            parsed_senses = ','.join(key + " : " + str(val) for key, val in senses_dict.items())
+            curr_monster[k] = parsed_senses
+        # Aditional setting/special abilities
+        elif k == 24:
+            try:
+                json_item["special_abilities"]
+                abilities_list = [d["name"] + ". " + d["desc"] for d in json_item["special_abilities"]]
+                # ASSUMPTION: list is never null/empty
+                abilities_string = " ".join(abilities_list)
+                curr_monster[k] = abilities_string
+            except Exception as e:
+                # HACK: grab KeyError specifically not just general exceptions
+                 print(f"An error has occurred: {e}")
+        # actions
+        elif k == 26:
+            # item["actions"] returns list of dicts
+            try:
+                json_item["actions"]
+                actions_list = [d["name"] + ". " + d["desc"] for d in json_item["actions"]]
+                actions_string = " ".join(actions_list)
+                curr_monster[k] = actions_string
+            except Exception as e:
+                print(f"An error has occurred: {e}")
+        # legendary actions
+        elif k == 27:
+            if "legendary_actions" in json_item:
+                leg_actions_list = [d["name"] + ". " + d["desc"] for d in json_item["legendary_actions"]]
+                leg_actions_string = " ".join(leg_actions_list)
+                curr_monster[k] = leg_actions_string
+            else:
+                print(f"Index: {json_item['index']} does not have legendary actions")
         
     monster_rows.append(curr_monster)
 
