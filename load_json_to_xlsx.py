@@ -134,6 +134,17 @@ for json_item in data:
                     curr_monster[k] = dmg_item_s[:-2] # trim trailing space and comma
             except Exception as e:
                 print(f"An error has occurred: {e}")
+        # Condition Immunities
+        elif k == 19:
+            try:
+                condition_immunities_list = json_item["condition_immunities"]
+                if len(condition_immunities_list) > 0:
+                    con_immune_s = ""
+                    for s in condition_immunities_list:
+                        con_immune_s += s + ', ' # HACK
+                    curr_monster[k] = con_immune_s[:-2] # trim trailing space and comma
+            except Exception as e:
+                print(f"An error has occurred: {e}")
         # senses
         elif k == 20:
             senses_dict = json_item["senses"]

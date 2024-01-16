@@ -166,6 +166,19 @@ for item in data:
     if "legendary_actions" in item:
         legendary_acts = get_actions_name_and_desc(item=item, action_type="legendary_actions")
         raw_monster["legendary_actions"] = legendary_acts
+    
+    # Get condition_immunities
+    # ASSUMPTION: item["condition_immunities"] always exists but may be empty []
+    try:
+        # returns list of dicts
+        condition_immunities_lod = item["condition_immunities"]
+        condition_immunities_list = []
+        if condition_immunities_lod:
+            for item in condition_immunities_lod:
+                condition_immunities_list.append(item["name"])
+        raw_monster["condition_immunities"] = condition_immunities_list
+    except Exception as e:
+        print(f"An error has occurred: {e}")
 
     # TODO: perform some validation on it before considering updated
     updated_raw_monster = raw_monster
