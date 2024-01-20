@@ -21,4 +21,4 @@ I hope that you enjoy it! 😄
 * [5e SRD API](https://github.com/5e-bits/5e-srd-api)
 * [5e SRD database](https://github.com/5e-bits/5e-database/tree/main/src)
 
-![xlsm preview](https://github.com/mcclellangg/DND-DE/images/fight_sheet_preview.png)
+![xlsm preview](https://github.com/mcclellangg/DND-DE/blob/master/images/fight_sheet_preview.png?raw=true)
